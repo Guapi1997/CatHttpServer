@@ -44,7 +44,9 @@ struct Response {
         {
             stream << it->name << ": " << it->value << "\n";
         }
-
+        
+        stream << "\r\n";
+        
         std::string data(content.begin(), content.end());
         stream << data << "\n";
         return stream.str();

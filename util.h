@@ -10,7 +10,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 
-const int MAXREADTIME = 2;
+const int MAXREADTIME = 5;
 
 void handle_for_sigpipe();
 ssize_t readn(int fd, void *buff, size_t n);

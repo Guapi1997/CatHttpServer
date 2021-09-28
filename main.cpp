@@ -8,7 +8,7 @@
 int main()
 {
     handle_for_sigpipe();
-    LOG::RANK = 2;
+    LOG::RANK = 0;
     SocketServer server;
     if(server.socket_bind_listen() == true)
     {

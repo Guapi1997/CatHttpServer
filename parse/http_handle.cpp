@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iostream>
 
+static httpparser::Response response;
+
 std::string readHtmlFile(const char* path)
 {
     std::ifstream fin(path);
@@ -18,10 +20,76 @@ std::string readHtmlFile(const char* path)
 }
 
 
+httpparser::Response setRespone_index()
+{
+    httpparser::Response res;
+    const char root_path[] = "/root/cathttpserver/version_0.2.1/html/hello.html";
+    
+    res.versionMajor = 1;
+    res.versionMinor = 1;
+    res.statusCode = 200;
+    res.status = "OK";
+    res.keepAlive = true;
+
+    std::string body = readHtmlFile(root_path);
+    int left_count = 0; 
+    /*
+        这段代码主要是去除 html 中的多余空格
+    */
+    for(auto &p : body)
+    {
+        if(p == ' ' && left_count == 0)
+            continue;
+        else if(p == '<')
+        {
+            res.content.push_back(p);
+            left_count++;
+        }
+        else if(p == '>')
+        {
+            res.content.push_back(p);
+            left_count--;
+        }
+        else
+            res.content.push_back(p);
+    }
+        
+
+    res.headers.push_back({"Server", "catHttpServer/0.2.1"});
+    res.headers.push_back({"Content-Type", "text/html"});
+    res.headers.push_back({"Content-Length", std::to_string(res.content.size())});
+    res.headers.push_back({"charset", "utf-8"});
+    res.headers.push_back({"Connection", "keep-alive"});
+    
+    return res;
+}
+
+
+httpparser::Response setRespone_test()
+{
+    httpparser::Response res;
+    res.versionMajor = 1;
+    res.versionMinor = 1;
+    res.statusCode = 200;
+    res.status = "OK";
+    res.keepAlive = true;
+
+    res.headers.push_back({"Server", "catHttpServer/0.2.1"});
+    res.headers.push_back({"Content-Type", "text/html"});
+    res.headers.push_back({"Content-Length", std::to_string(8)});
+    res.headers.push_back({"charset", "utf-8"});
+    res.headers.push_back({"Connection", "keep-alive"});
+    
+    std::string test = "<html />";
+    for(auto &p : test)
+        res.content.push_back(p);
+
+    return res;
+}
+
+
 std::string http_request_handle(const char *request_context, ssize_t size)
 {
-    const char root_path[] = "/root/cathttpserver/version_2.1/html/hello_world.html";
-
     std::string http_context;
     httpparser::Request req;
     httpparser::HttpRequestParser parser;
@@ -32,36 +100,31 @@ std::string http_request_handle(const char *request_context, ssize_t size)
         {
             if(req.uri == "/")
             {
-                httpparser::Response response;
-                
-                char _header[] =
-                        "HTTP/1.1 200 OK\r\n"
-                        "Server: catHttpServer/0.2.1\r\n"
-                        "Content-Type: text/html\r\n"
-                        "Content-Length: %d\r\n"
-                        "charset: utf-8"
-                        "Connection: keep-alive\r\n"
-                        "\r\n";
-                std::string body = readHtmlFile(root_path);
-                Debug("%s:%d 网页长度 = %d\n", __FILE__, __LINE__, (int)body.size());
-                char header[1024];
-                sprintf(header, _header, body.size());
-                std::cout << header << std::endl;
-                http_context += header;
-                http_context += body;
-                return http_context;
+                // return setRespone_test().inspect();
+                const char text[] =
+                    "HTTP/1.1 200 OK\r\n"
+                    "Server: nginx/1.2.1\r\n"
+                    "Content-Type: text/html\r\n"
+                    "Content-Length: 8\r\n"
+                    "Connection: keep-alive\r\n"
+                    "\r\n"
+                    "<html />";
+                return text;
                 break;
             }
             if(req.uri == "/index.html")
             {
-                return "No Http";
+                return setRespone_index().inspect();
                 break;
             }
+
+            return "No Http";
             break;
+
         } while (false);
 
     }
 
     Debug("%s:%d 报文不是Http\n", __FILE__, __LINE__);
-    return std::string("No Http");
+    return "No Http";
 }

@@ -1,7 +1,7 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
-#define __DEBUG__
+// #define __DEBUG__
 #ifdef __DEBUG__
 #define Debug(fmt, ...) printf(fmt, ##__VA_ARGS__)
 #else
